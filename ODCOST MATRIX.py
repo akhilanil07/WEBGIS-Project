@@ -153,9 +153,7 @@ def create_network(fd_path, streets_fc):
 
     return nd_path
 
-
-# ============================================================
-# STEP 3: Create NTA Centroids
+# Create NTA Centroids
 
 
 def create_centroids():
