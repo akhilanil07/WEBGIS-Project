@@ -2,13 +2,13 @@ import arcpy
 import os
 
 
-# Output geodatabase 
+# Output geodatabase (change to whatever local pc path)
 OUTPUT_GDB = r"C:\Users\Lakshya's XPS\Documents\ArcGIS\Projects\MyProject4\Accessibility.gdb"
 
-# Feature dataset name
+# Feature dataset name 
 FEATURE_DATASET_NAME = "network_data"
 
-# Input data paths 
+# Input data paths (change to local pc path)
 STREETS_PATH = r"C:\Users\Lakshya's XPS\Documents\ArcGIS\Projects\MyProject4\MyProject4.gdb\lion_Clip_Project_Project"
 MTA_PATH = r"C:\Users\Lakshya's XPS\Documents\ArcGIS\Projects\MyProject4\MyProject4.gdb\MTA_Project"
 FACILITIES_PATH = r"C:\Users\Lakshya's XPS\Documents\ArcGIS\Projects\MyProject4\MyProject4.gdb\Facilities_Database__Project"
