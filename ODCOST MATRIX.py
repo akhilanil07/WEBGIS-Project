@@ -303,10 +303,6 @@ def main():
     print("  - OD_Lines_MTA (walking distance to subway stations)")
     print("  - OD_Lines_Facilities (walking distance to facilities)")
     print("\nKey field: WalkTime_Min (walking time in minutes at 3 mph)")
-    print("\nNext steps:")
-    print("  1. Decide on amenity categories for liveability score")
-    print("  2. Calculate min walk time per origin per category")
-    print("  3. Normalize, invert, and create composite score")
 
 
 if __name__ == "__main__":
