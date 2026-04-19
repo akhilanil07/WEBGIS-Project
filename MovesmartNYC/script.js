@@ -125,10 +125,10 @@ async function init() {
       updateCityStats();
     });
 
+
     profileButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
-        const profile = btn.dataset.profile;
-        applyProfile(profile);
+        applyProfile(btn.dataset.profile);
       });
     });
 

@@ -94,6 +94,21 @@ const layerConfig = [
   }
 ];
 
+// Wire up profile modal immediately — independent of data loading
+profileButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    applyProfile(btn.dataset.profile);
+  });
+});
+
+skipProfileBtn.addEventListener("click", () => {
+  profileModal.classList.add("hidden");
+  metricSelect.value = "mta_count";
+  refreshNeighborhoodStyle();
+  updateMetricNote();
+  updateLegend();
+});
+
 init();
 
 async function init() {
@@ -125,20 +140,6 @@ async function init() {
       updateCityStats();
     });
 
-    profileButtons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const profile = btn.dataset.profile;
-        applyProfile(profile);
-      });
-    });
-
-    skipProfileBtn.addEventListener("click", () => {
-      profileModal.classList.add("hidden");
-      metricSelect.value = "mta_count";
-      refreshNeighborhoodStyle();
-      updateMetricNote();
-      updateLegend();
-    });
 
     updateMetricNote();
     updateLegend();
