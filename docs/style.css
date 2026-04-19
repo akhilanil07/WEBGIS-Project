@@ -35,7 +35,8 @@ body {
 .app-shell {
   display: grid;
   grid-template-columns: 390px 1fr;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -43,6 +44,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  height: 100vh;
   overflow-y: auto;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(5, 11, 20, 0.35);
@@ -52,6 +54,8 @@ body {
 .map-panel {
   position: relative;
   padding: 20px 20px 20px 0;
+  height: 100vh;
+  overflow: hidden;
 }
 
 #map {
