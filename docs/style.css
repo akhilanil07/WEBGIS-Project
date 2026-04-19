@@ -86,8 +86,8 @@ body {
 
 .brand-badge {
   display: block;
-  width: 160px;
-  height: 160px;
+  width: 195px;
+  height: 195px;
   border-radius: 50%;
   margin: 0 auto 12px;
   padding: 3px;
@@ -332,6 +332,12 @@ select {
   padding: 13px 16px;
 }
 
+/* Zoom controls — sit above the legend */
+.leaflet-bottom.leaflet-right {
+  bottom: 235px;
+  right: 20px;
+}
+
 .map-overlay-title {
   font-size: 0.72rem;
   font-weight: 700;
@@ -480,7 +486,6 @@ select {
 
 /* ── City average card ── */
 .city-stats-card {
-  margin-top: auto;
   padding: 14px 16px;
 }
 

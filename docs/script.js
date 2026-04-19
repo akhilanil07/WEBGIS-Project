@@ -1,7 +1,8 @@
 const map = L.map("map", {
-  zoomControl: true,
+  zoomControl: false,
   preferCanvas: true
 }).setView([40.73, -73.94], 11);
+L.control.zoom({ position: "bottomright" }).addTo(map);
 
 L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
   attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
