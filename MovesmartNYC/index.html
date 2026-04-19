@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MoveSmart NYC</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="glass brand-card">
+        <div class="brand-badge">
+          <img src="webmap_data/NYC_LL.png" alt="MoveSmart NYC logo" class="brand-logo" />
+        </div>
+        <p>
+          Explore New York City neighborhoods using walkable access to transit,
+          schools, healthy stores, sports, and community services.
+        </p>
+        <button id="changeProfileBtn" class="change-profile-btn">Choose a Profile</button>
+      </div>
+
+      <div class="glass control-card">
+        <h2>Map Metric</h2>
+        <div class="borough-filter">
+          <button class="borough-btn active" data-boro="all">All</button>
+          <button class="borough-btn" data-boro="Manhattan">Manhattan</button>
+          <button class="borough-btn" data-boro="Brooklyn">Brooklyn</button>
+          <button class="borough-btn" data-boro="Queens">Queens</button>
+          <button class="borough-btn" data-boro="Bronx">Bronx</button>
+          <button class="borough-btn" data-boro="Staten Island">Staten Is.</button>
+        </div>
+        <label for="metricSelect">Color neighborhoods by</label>
+        <select id="metricSelect">
+          <option value="movesmart_score">MoveSmart Score</option>
+          <optgroup label="Access Counts">
+            <option value="mta_count">Transit Access</option>
+            <option value="schools_count">School Access</option>
+            <option value="healthy_count">Healthy Store Access</option>
+            <option value="facilities_count">Community Services</option>
+            <option value="athletic_count">Sports &amp; Fitness</option>
+          </optgroup>
+          <optgroup label="Walk Times">
+            <option value="mta_avgtm">Avg Walk to Transit</option>
+            <option value="mta_mintm">Min Walk to Transit</option>
+            <option value="schools_avgtm">Avg Walk to Schools</option>
+            <option value="healthy_avgtm">Avg Walk to Healthy Stores</option>
+            <option value="facilities_avgtm">Avg Walk to Services</option>
+            <option value="athletic_avgtm">Avg Walk to Fitness</option>
+          </optgroup>
+        </select>
+        <div id="metricNote" class="metric-note">
+          Choose a lifestyle profile to generate a personalized recommendation score.
+        </div>
+      </div>
+
+      <div class="glass control-card">
+        <h2>Layer Toggles</h2>
+
+        <label class="toggle-row">
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggleMTA" />
+            <span class="toggle-track"></span>
+          </div>
+          <span>Subway Stations</span>
+        </label>
+
+        <label class="toggle-row">
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggleFacilities" />
+            <span class="toggle-track"></span>
+          </div>
+          <span>Community Services</span>
+        </label>
+
+        <label class="toggle-row">
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggleAthletic" />
+            <span class="toggle-track"></span>
+          </div>
+          <span>Sports &amp; Fitness</span>
+        </label>
+
+        <label class="toggle-row">
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggleHealthy" />
+            <span class="toggle-track"></span>
+          </div>
+          <span>Healthy Stores</span>
+        </label>
+
+        <label class="toggle-row">
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggleSchools" />
+            <span class="toggle-track"></span>
+          </div>
+          <span>Schools</span>
+        </label>
+      </div>
+
+      <div class="glass control-card city-stats-card">
+        <div class="city-stat-header">
+          <span class="city-stat-title">NYC Average</span>
+          <span class="city-stat-label" id="cityStatLabel">—</span>
+        </div>
+        <div class="city-stat-body">
+          <div class="city-stat-value" id="cityStatValue">—</div>
+          <div class="city-stat-range-section">
+            <div class="city-stat-track">
+              <div class="city-stat-marker" id="cityStatMarker"></div>
+            </div>
+            <div class="city-stat-range-labels">
+              <span id="cityStatMin">—</span>
+              <span id="cityStatMax">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="city-stat-sub" id="cityStatAbove">—</div>
+      </div>
+    </aside>
+
+    <main class="map-panel">
+      <!-- Top hero bar with search -->
+      <div class="glass hero">
+        <div>
+          <div class="eyebrow">Move smarter in New York City</div>
+          <h2>Find neighborhoods with the access you care about most.</h2>
+        </div>
+        <div class="hero-search">
+          <input type="text" id="neighborhoodSearch" class="hero-search-input" placeholder="Search neighborhoods…" autocomplete="off" />
+          <div id="searchResults" class="search-results"></div>
+        </div>
+      </div>
+
+      <div id="map"></div>
+
+      <!-- Neighborhood snapshot — bottom-left overlay -->
+      <div class="glass map-info-overlay" id="infoPanelWrap">
+        <div class="map-overlay-title">Neighborhood Snapshot</div>
+        <div id="infoPanel" class="info-panel">
+          <p>Click a neighborhood or choose a profile to explore.</p>
+        </div>
+      </div>
+
+      <!-- Legend — bottom-right overlay -->
+      <div class="glass map-legend-overlay">
+        <div class="map-overlay-title">Legend</div>
+        <div id="legend" class="legend"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="profileModal" class="profile-modal">
+    <div class="profile-modal-card glass">
+      <div class="profile-modal-logo">
+        <img src="webmap_data/NYC_LL.png" alt="MoveSmart NYC" />
+      </div>
+      <div class="eyebrow">Choose your lifestyle</div>
+      <h2>What matters most to you in NYC?</h2>
+      <p>Select a profile to personalize the recommendation map.</p>
+
+      <div class="profile-options">
+        <button class="profile-btn" data-profile="commuter">
+          <strong>🚇 Commuter</strong>
+          <span>Prioritizes transit access and shorter walks</span>
+        </button>
+
+        <button class="profile-btn" data-profile="family">
+          <strong>👨‍👩‍👧 Family</strong>
+          <span>Prioritizes schools, services, and everyday convenience</span>
+        </button>
+
+        <button class="profile-btn" data-profile="active">
+          <strong>🏃 Active Lifestyle</strong>
+          <span>Prioritizes fitness, healthy stores, and walkability</span>
+        </button>
+      </div>
+
+      <button id="skipProfileBtn" class="skip-btn">Skip and explore manually</button>
+    </div>
+  </div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script src="script.js"></script>
+</body>
+</html>
