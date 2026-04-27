@@ -506,7 +506,7 @@ function getNumericValue(props, field) {
 }
 
 function isValidMetricValue(v, metric) {
-  return Number.isFinite(v) && !(reversedMetrics.has(metric) && v === 0);
+  return Number.isFinite(v) && !(reversedMetrics.has(metric) && v < 0.1);
 }
 
 function getColorForValue(value, metric, forcedMin = null, forcedMax = null) {
