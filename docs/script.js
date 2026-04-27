@@ -466,7 +466,7 @@ function updateLegend() {
   const metric = metricSelect.value;
   const values = ntaData.features
     .map((f) => getNumericValue(f.properties, metric))
-    .filter((v) => Number.isFinite(v));
+    .filter((v) => isValidMetricValue(v, metric));
 
   if (!values.length) {
     legendContainer.innerHTML = "<div class='legend-row'>No data</div>";
@@ -505,14 +505,18 @@ function getNumericValue(props, field) {
   return Number.isFinite(num) ? num : null;
 }
 
+function isValidMetricValue(v, metric) {
+  return Number.isFinite(v) && !(reversedMetrics.has(metric) && v === 0);
+}
+
 function getColorForValue(value, metric, forcedMin = null, forcedMax = null) {
-  if (value === null || value === undefined) {
+  if (value === null || value === undefined || !isValidMetricValue(value, metric)) {
     return "rgba(255,255,255,0.08)";
   }
 
   const values = ntaData.features
     .map((f) => getNumericValue(f.properties, metric))
-    .filter((v) => Number.isFinite(v));
+    .filter((v) => isValidMetricValue(v, metric));
 
   const min = forcedMin ?? Math.min(...values);
   const max = forcedMax ?? Math.max(...values);
@@ -595,7 +599,7 @@ function updateCityStats() {
   const metric = metricSelect.value;
   const values = ntaData.features
     .map(f => getNumericValue(f.properties, metric))
-    .filter(v => Number.isFinite(v));
+    .filter(v => isValidMetricValue(v, metric));
 
   if (!values.length) return;
 
