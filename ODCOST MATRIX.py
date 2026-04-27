@@ -114,6 +114,24 @@ def create_feature_dataset_and_import():
     else:
         print("NTA neighborhoods already imported or path not set.")
 
+    schools_out = os.path.join(OUTPUT_GDB, "Schools")
+    if not arcpy.Exists(schools_out):
+        import_geojson(SCHOOLS_GEOJSON, schools_out, sr, "Schools")
+    else:
+        print("Schools already imported.")
+
+    stores_out = os.path.join(OUTPUT_GDB, "Healthy_Stores")
+    if not arcpy.Exists(stores_out):
+        import_geojson(HEALTHY_STORES_GEOJSON, stores_out, sr, "Healthy Stores")
+    else:
+        print("Healthy Stores already imported.")
+
+    athletic_out = os.path.join(OUTPUT_GDB, "Athletic_Facilities")
+    if not arcpy.Exists(athletic_out):
+        import_geojson(ATHLETIC_FACILITIES_GEOJSON, athletic_out, sr, "Athletic Facilities")
+    else:
+        print("Athletic Facilities already imported.")
+        
     return fd_path, streets_out
 
 
@@ -290,6 +308,19 @@ def main():
     facilities_fc = os.path.join(OUTPUT_GDB, "Facilities")
     od_facilities = run_od_cost_matrix(nd_path, nta_centroids, facilities_fc, "OD_Lines_Facilities")
 
+    # Runs OD Cost Matrix for schools
+    schools_fc = os.path.join(OUTPUT_GDB, "Schools")
+    od_schools = run_od_cost_matrix(nd_path, nta_centroids, schools_fc, "OD_Lines_Schools")
+
+    # Runs OD Cost Matrix for healthy stores
+    stores_fc = os.path.join(OUTPUT_GDB, "Healthy_Stores")
+    od_stores = run_od_cost_matrix(nd_path, nta_centroids, stores_fc, "OD_Lines_Healthy_Stores")
+
+    # Runs OD Cost Matrix for athletic facilities
+    athletic_fc = os.path.join(OUTPUT_GDB, "Athletic_Facilities")
+    od_athletic = run_od_cost_matrix(nd_path, nta_centroids, athletic_fc, "OD_Lines_Athletic_Facilities")
+
+
     arcpy.CheckInExtension("Network")
 
     # Final summary
@@ -302,6 +333,9 @@ def main():
     print("  - NTA_Centroids (262 origin points)")
     print("  - OD_Lines_MTA (walking distance to subway stations)")
     print("  - OD_Lines_Facilities (walking distance to facilities)")
+    print("  - OD_Lines_Schools (walking distance to schools)")
+    print("  - OD_Lines_Healthy_Stores (walking distance to healthy stores)")
+    print("  - OD_Lines_Athletic_Facilities (walking distance to athletic facilities)")
     print("\nKey field: WalkTime_Min (walking time in minutes at 3 mph)")
 
 
