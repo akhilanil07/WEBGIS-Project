@@ -2,6 +2,7 @@ const map = L.map("map", {
   zoomControl: false,
   preferCanvas: true
 }).setView([40.73, -73.94], 11);
+
 L.control.zoom({ position: "bottomright" }).addTo(map);
 
 L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
@@ -16,12 +17,19 @@ const profileModal = document.getElementById("profileModal");
 const profileButtons = document.querySelectorAll(".profile-btn");
 const skipProfileBtn = document.getElementById("skipProfileBtn");
 
-const reversedMetrics = new Set(["mta_avgtm", "mta_mintm", "facilities_avgtm", "schools_avgtm", "healthy_avgtm", "athletic_avgtm"]);
+const reversedMetrics = new Set([
+  "mta_avgtm",
+  "mta_mintm",
+  "facilities_avgtm",
+  "schools_avgtm",
+  "healthy_avgtm",
+  "athletic_avgtm"
+]);
+
 const weightedModeField = "movesmart_score";
 
 let ntaLayer = null;
 let ntaData = null;
-let pointLayers = {};
 let selectedProfile = null;
 let highlightedRecommendation = null;
 let tooltipEl = null;
@@ -95,7 +103,6 @@ const layerConfig = [
   }
 ];
 
-// Wire up profile modal immediately — independent of data loading
 profileButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
     applyProfile(btn.dataset.profile);
@@ -115,6 +122,7 @@ init();
 async function init() {
   try {
     const ntaResponse = await fetch("webmap_data/nta_accessibility.geojson");
+
     if (!ntaResponse.ok) {
       throw new Error(`Failed to load nta_accessibility.geojson: ${ntaResponse.status}`);
     }
@@ -127,6 +135,7 @@ async function init() {
     }).addTo(map);
 
     const ntaBounds = ntaLayer.getBounds();
+
     if (ntaBounds.isValid()) {
       map.fitBounds(ntaBounds, { padding: [20, 20] });
     }
@@ -140,7 +149,6 @@ async function init() {
       updateLegend();
       updateCityStats();
     });
-
 
     updateMetricNote();
     updateLegend();
@@ -166,6 +174,7 @@ async function loadPointLayers() {
   for (const cfg of layerConfig) {
     try {
       const response = await fetch(cfg.url);
+
       if (!response.ok) {
         console.warn(`Skipping ${cfg.key}. Could not load ${cfg.url}`);
         continue;
@@ -197,13 +206,17 @@ async function loadPointLayers() {
               </div>
             </div>
           `;
+
           layerItem.bindPopup(popupHtml);
         }
       });
 
-      pointLayers[cfg.key] = layer;
-
       const toggle = document.getElementById(cfg.toggleId);
+
+      if (!toggle) {
+        continue;
+      }
+
       if (toggle.checked) {
         layer.addTo(map);
       }
@@ -235,12 +248,20 @@ function applyProfile(profileKey) {
 }
 
 function computeMoveSmartScores(weights) {
-  const metrics = ["mta_count", "schools_count", "healthy_count", "facilities_count", "athletic_count", "mta_avgtm"];
+  const metrics = [
+    "mta_count",
+    "schools_count",
+    "healthy_count",
+    "facilities_count",
+    "athletic_count",
+    "mta_avgtm"
+  ];
+
   const stats = {};
 
   metrics.forEach((metric) => {
     const values = ntaData.features
-      .map((f) => getNumericValue(f.properties, metric))
+      .map((f) => getScoreValue(f.properties, metric))
       .filter((v) => Number.isFinite(v));
 
     stats[metric] = {
@@ -254,8 +275,11 @@ function computeMoveSmartScores(weights) {
     let score = 0;
 
     metrics.forEach((metric) => {
-      const value = getNumericValue(props, metric);
-      if (!Number.isFinite(value)) return;
+      const value = getScoreValue(props, metric);
+
+      if (!Number.isFinite(value)) {
+        return;
+      }
 
       const min = stats[metric].min;
       const max = stats[metric].max;
@@ -285,16 +309,23 @@ function highlightBestNeighborhood() {
 
   ntaLayer.eachLayer((layer) => {
     const score = getNumericValue(layer.feature.properties, weightedModeField);
+
     if (Number.isFinite(score) && score > bestScore) {
       bestScore = score;
       bestLayer = layer;
     }
   });
 
-  if (!bestLayer) return;
+  if (!bestLayer) {
+    return;
+  }
 
   highlightedRecommendation = bestLayer;
-  bestLayer.setStyle({ color: "#00ffa3", weight: 3.5, fillOpacity: 0.9 });
+  bestLayer.setStyle({
+    color: "#00ffa3",
+    weight: 3.5,
+    fillOpacity: 0.9
+  });
 
   if (bestLayer.getBounds) {
     map.fitBounds(bestLayer.getBounds(), { padding: [60, 60] });
@@ -310,7 +341,10 @@ function clearRecommendationHighlight() {
 
 function filterValidPointFeatures(geojson) {
   if (!geojson || !Array.isArray(geojson.features)) {
-    return { type: "FeatureCollection", features: [] };
+    return {
+      type: "FeatureCollection",
+      features: []
+    };
   }
 
   const validFeatures = geojson.features.filter((feature) => {
@@ -318,9 +352,11 @@ function filterValidPointFeatures(geojson) {
     if (feature.geometry.type !== "Point") return false;
 
     const coords = feature.geometry.coordinates;
+
     if (!Array.isArray(coords) || coords.length < 2) return false;
 
     const [lng, lat] = coords;
+
     if (!Number.isFinite(lng) || !Number.isFinite(lat)) return false;
     if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return false;
 
@@ -351,30 +387,54 @@ function onEachNeighborhood(feature, layer) {
   layer.on({
     mouseover: (e) => {
       const target = e.target;
-      target.setStyle({ weight: 2, color: "#ffffff", fillOpacity: 0.86 });
+
+      target.setStyle({
+        weight: 2,
+        color: "#ffffff",
+        fillOpacity: 0.86
+      });
+
       if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
         target.bringToFront();
       }
     },
     mousemove: (e) => {
-      if (!tooltipEl) return;
+      if (!tooltipEl) {
+        return;
+      }
+
       const metric = metricSelect.value;
       const value = getNumericValue(feature.properties, metric);
-      const name = pickFirstExisting(feature.properties, ["ntaname", "NTAName", "NTA_NAME", "name", "Name"]) || "Neighborhood";
+      const name =
+        pickFirstExisting(feature.properties, ["ntaname", "NTAName", "NTA_NAME", "name", "Name"]) ||
+        "Neighborhood";
       const metricLabel = metricSelect.options[metricSelect.selectedIndex]?.text || metric;
+
       const displayVal = reversedMetrics.has(metric)
         ? formatMinutes(feature.properties[metric])
-        : (value !== null ? (metric === weightedModeField ? value.toFixed(1) : String(Math.round(value))) : "N/A");
-      tooltipEl.innerHTML = `<strong>${escapeHtml(String(name))}</strong>${escapeHtml(metricLabel)}: ${escapeHtml(displayVal)}`;
-      tooltipEl.style.left = (e.originalEvent.clientX + 14) + "px";
-      tooltipEl.style.top = (e.originalEvent.clientY - 8) + "px";
+        : value !== null
+          ? metric === weightedModeField
+            ? value.toFixed(1)
+            : String(Math.round(value))
+          : "N/A";
+
+      tooltipEl.innerHTML = `
+        <strong>${escapeHtml(String(name))}</strong><br>
+        ${escapeHtml(metricLabel)}: ${escapeHtml(displayVal)}
+      `;
+
+      tooltipEl.style.left = `${e.originalEvent.clientX + 14}px`;
+      tooltipEl.style.top = `${e.originalEvent.clientY - 8}px`;
       tooltipEl.style.display = "block";
     },
     mouseout: () => {
       if (ntaLayer && layer !== highlightedRecommendation) {
         ntaLayer.resetStyle(layer);
       }
-      if (tooltipEl) tooltipEl.style.display = "none";
+
+      if (tooltipEl) {
+        tooltipEl.style.display = "none";
+      }
     },
     click: () => {
       const props = feature.properties || {};
@@ -447,11 +507,12 @@ function updateMetricNote() {
     } else {
       metricNote.textContent = "MoveSmart Score appears after choosing a lifestyle profile.";
     }
+
     return;
   }
 
   if (reversedMetrics.has(metric)) {
-    metricNote.textContent = "Lower values are better for this metric. Stronger color means lower walk time.";
+    metricNote.textContent = "Lower values are better for this metric. Areas with no valid access time are shown as no data.";
   } else {
     metricNote.textContent = "Higher values are shown with stronger color.";
   }
@@ -475,16 +536,18 @@ function updateLegend() {
 
   const min = Math.min(...values);
   const max = Math.max(...values);
-
   const steps = 5;
-  const isReversed = reversedMetrics.has(metric);
-
   const items = [];
+
   for (let i = 0; i < steps; i++) {
-    const v = min + (max - min) * i / (steps - 1);
+    const v = min + ((max - min) * i) / (steps - 1);
     const color = getColorForValue(v, metric, min, max);
     const label = formatLegendValue(v, metric);
-    items.push({ color, label });
+
+    items.push({
+      color,
+      label
+    });
   }
 
   legendContainer.innerHTML = `
@@ -502,11 +565,26 @@ function updateLegend() {
 function getNumericValue(props, field) {
   const value = props?.[field];
   const num = Number(value);
+
   return Number.isFinite(num) ? num : null;
 }
 
-function isValidMetricValue(v, metric) {
-  return Number.isFinite(v) && !(reversedMetrics.has(metric) && v < 0.1);
+function getScoreValue(props, metric) {
+  const value = getNumericValue(props, metric);
+
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+
+  if (reversedMetrics.has(metric) && value < 0.1) {
+    return null;
+  }
+
+  return value;
+}
+
+function isValidMetricValue(value, metric) {
+  return Number.isFinite(value) && !(reversedMetrics.has(metric) && value < 0.1);
 }
 
 function getColorForValue(value, metric, forcedMin = null, forcedMax = null) {
@@ -536,7 +614,10 @@ function getColorForValue(value, metric, forcedMin = null, forcedMax = null) {
 }
 
 function interpolateColor(c1, c2, c3, t) {
-  if (t < 0.5) return blend(c1, c2, t * 2);
+  if (t < 0.5) {
+    return blend(c1, c2, t * 2);
+  }
+
   return blend(c2, c3, (t - 0.5) * 2);
 }
 
@@ -565,6 +646,7 @@ function pickFirstExisting(obj, keys) {
       return obj[key];
     }
   }
+
   return null;
 }
 
@@ -574,13 +656,25 @@ function safeValue(value) {
 
 function formatMinutes(value) {
   const num = Number(value);
-  return Number.isFinite(num) ? `${num.toFixed(1)} min` : "N/A";
+
+  if (!Number.isFinite(num) || num < 0.1) {
+    return "No nearby access";
+  }
+
+  return `${num.toFixed(1)} min`;
 }
 
 function formatLegendValue(value, metric) {
   const num = Number(value);
-  if (!Number.isFinite(num)) return "N/A";
-  if (metric === weightedModeField) return `${num.toFixed(0)}`;
+
+  if (!Number.isFinite(num)) {
+    return "N/A";
+  }
+
+  if (metric === weightedModeField) {
+    return `${num.toFixed(0)}`;
+  }
+
   return reversedMetrics.has(metric) ? `${num.toFixed(1)} min` : `${num.toFixed(0)}`;
 }
 
@@ -594,28 +688,35 @@ function escapeHtml(str) {
 }
 
 function updateCityStats() {
-  if (!ntaData) return;
+  if (!ntaData) {
+    return;
+  }
 
   const metric = metricSelect.value;
   const values = ntaData.features
-    .map(f => getNumericValue(f.properties, metric))
-    .filter(v => isValidMetricValue(v, metric));
+    .map((f) => getNumericValue(f.properties, metric))
+    .filter((v) => isValidMetricValue(v, metric));
 
-  if (!values.length) return;
+  if (!values.length) {
+    return;
+  }
 
   const avg = values.reduce((s, v) => s + v, 0) / values.length;
   const min = Math.min(...values);
   const max = Math.max(...values);
   const pct = max === min ? 50 : ((avg - min) / (max - min)) * 100;
-  const aboveAvg = values.filter(v => v > avg).length;
+  const aboveAvg = values.filter((v) => v > avg).length;
   const metricLabel = metricSelect.options[metricSelect.selectedIndex]?.text || metric;
 
   document.getElementById("cityStatLabel").textContent = metricLabel;
   document.getElementById("cityStatValue").textContent = reversedMetrics.has(metric)
     ? formatMinutes(avg)
     : avg.toFixed(1);
-  document.getElementById("cityStatAbove").textContent =
-    `${aboveAvg} of ${values.length} neighborhoods above avg`;
+
+  document.getElementById("cityStatAbove").textContent = reversedMetrics.has(metric)
+    ? `${aboveAvg} of ${values.length} neighborhoods have longer-than-average access time`
+    : `${aboveAvg} of ${values.length} neighborhoods are above average`;
+
   document.getElementById("cityStatMin").textContent = formatLegendValue(min, metric);
   document.getElementById("cityStatMax").textContent = formatLegendValue(max, metric);
   document.getElementById("cityStatMarker").style.left = `${pct.toFixed(1)}%`;
@@ -624,49 +725,79 @@ function updateCityStats() {
 function initSearch() {
   const input = document.getElementById("neighborhoodSearch");
   const resultsEl = document.getElementById("searchResults");
-  if (!input || !resultsEl) return;
+
+  if (!input || !resultsEl) {
+    return;
+  }
 
   input.addEventListener("input", () => {
     const q = input.value.trim().toLowerCase();
-    if (q.length < 2) { resultsEl.style.display = "none"; resultsEl.innerHTML = ""; return; }
+
+    if (q.length < 2) {
+      resultsEl.style.display = "none";
+      resultsEl.innerHTML = "";
+      return;
+    }
 
     const matches = [];
+
     ntaLayer.eachLayer((layer) => {
       const props = layer.feature.properties || {};
-      const name = pickFirstExisting(props, ["ntaname", "NTAName", "NTA_NAME", "name", "Name"]) || "";
-      if (name.toLowerCase().includes(q)) matches.push({ name, layer });
+      const name =
+        pickFirstExisting(props, ["ntaname", "NTAName", "NTA_NAME", "name", "Name"]) ||
+        "";
+
+      if (name.toLowerCase().includes(q)) {
+        matches.push({
+          name,
+          layer
+        });
+      }
     });
 
     matches.sort((a, b) => a.name.localeCompare(b.name));
+
     const top = matches.slice(0, 7);
 
-    if (!top.length) { resultsEl.style.display = "none"; return; }
+    if (!top.length) {
+      resultsEl.style.display = "none";
+      return;
+    }
 
     resultsEl.style.display = "block";
-    resultsEl.innerHTML = top.map(({ name }, i) =>
-      `<div class="search-result-item" data-idx="${i}">${escapeHtml(name)}</div>`
-    ).join("");
+    resultsEl.innerHTML = top.map(({ name }, i) => {
+      return `<div class="search-result-item" data-idx="${i}">${escapeHtml(name)}</div>`;
+    }).join("");
 
     top.forEach(({ name, layer }, i) => {
       resultsEl.querySelector(`[data-idx="${i}"]`)?.addEventListener("click", () => {
         input.value = name;
         resultsEl.style.display = "none";
         map.fitBounds(layer.getBounds(), { padding: [60, 60] });
-        layer.setStyle({ weight: 2.5, color: "#ffffff", fillOpacity: 0.9 });
+        layer.setStyle({
+          weight: 2.5,
+          color: "#ffffff",
+          fillOpacity: 0.9
+        });
         updateInfoPanel(layer.feature.properties);
       });
     });
   });
 
   document.addEventListener("click", (e) => {
-    if (!e.target.closest(".hero-search")) resultsEl.style.display = "none";
+    if (!e.target.closest(".hero-search")) {
+      resultsEl.style.display = "none";
+    }
   });
 }
 
 function initBoroughFilter() {
   document.querySelectorAll(".borough-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
-      document.querySelectorAll(".borough-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".borough-btn").forEach((b) => {
+        b.classList.remove("active");
+      });
+
       btn.classList.add("active");
       activeBorough = btn.dataset.boro;
       refreshNeighborhoodStyle();
@@ -675,12 +806,16 @@ function initBoroughFilter() {
         map.fitBounds(ntaLayer.getBounds(), { padding: [20, 20] });
       } else {
         const bounds = L.latLngBounds([]);
+
         ntaLayer.eachLayer((layer) => {
           if ((layer.feature.properties?.boroname || "") === activeBorough) {
             bounds.extend(layer.getBounds());
           }
         });
-        if (bounds.isValid()) map.fitBounds(bounds, { padding: [30, 30] });
+
+        if (bounds.isValid()) {
+          map.fitBounds(bounds, { padding: [30, 30] });
+        }
       }
     });
   });
@@ -690,19 +825,27 @@ function showTop5(profileKey) {
   const profileLabel = profileWeights[profileKey].label;
 
   const ranked = ntaData.features
-    .map((f) => ({ props: f.properties, score: getNumericValue(f.properties, weightedModeField) }))
+    .map((f, index) => ({
+      index,
+      props: f.properties,
+      score: getNumericValue(f.properties, weightedModeField)
+    }))
     .filter(({ score }) => Number.isFinite(score))
     .sort((a, b) => b.score - a.score)
     .slice(0, 5);
 
-  const itemsHtml = ranked.map(({ props, score }, i) => {
-    const name = pickFirstExisting(props, ["ntaname", "NTAName", "NTA_NAME", "name", "Name"]) || "Neighborhood";
+  const itemsHtml = ranked.map(({ props, score, index }, i) => {
+    const name =
+      pickFirstExisting(props, ["ntaname", "NTAName", "NTA_NAME", "name", "Name"]) ||
+      "Neighborhood";
+
     return `
-      <div class="top5-item" data-ntaname="${escapeHtml(String(props.ntaname || ""))}">
+      <div class="top5-item" data-feature-index="${index}">
         <div class="top5-rank">${i + 1}</div>
         <div class="top5-name">${escapeHtml(String(name))}</div>
         <div class="top5-score">${score.toFixed(0)}</div>
-      </div>`;
+      </div>
+    `;
   }).join("");
 
   infoPanel.innerHTML = `
@@ -712,14 +855,22 @@ function showTop5(profileKey) {
 
   document.getElementById("infoPanelWrap")?.classList.add("visible");
 
-  ranked.forEach(({ props }) => {
-    const el = infoPanel.querySelector(`[data-ntaname="${escapeHtml(String(props.ntaname || ""))}"]`);
-    if (!el) return;
+  ranked.forEach(({ props, index }) => {
+    const el = infoPanel.querySelector(`[data-feature-index="${index}"]`);
+
+    if (!el) {
+      return;
+    }
+
     el.addEventListener("click", () => {
       ntaLayer.eachLayer((layer) => {
-        if ((layer.feature.properties?.ntaname || "") === (props.ntaname || "")) {
+        if (layer.feature.properties === props) {
           map.fitBounds(layer.getBounds(), { padding: [60, 60] });
-          layer.setStyle({ weight: 2.5, color: "#00ffa3", fillOpacity: 0.9 });
+          layer.setStyle({
+            weight: 2.5,
+            color: "#00ffa3",
+            fillOpacity: 0.9
+          });
           updateInfoPanel(props);
         }
       });

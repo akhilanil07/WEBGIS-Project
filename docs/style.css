@@ -104,14 +104,6 @@ body {
   background: var(--bg);
 }
 
-.brand-card h1 {
-  margin: 0 0 8px;
-  font-size: 1.7rem;
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-}
-
 .brand-card p {
   margin: 0;
   color: var(--muted);
@@ -183,7 +175,7 @@ select {
 }
 
 .toggle-track::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 17px;
   height: 17px;
@@ -239,13 +231,6 @@ select {
   font-size: 0.92rem;
 }
 
-.legend-swatch {
-  width: 22px;
-  height: 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
 .hero {
   position: absolute;
   top: 36px;
@@ -275,7 +260,6 @@ select {
   white-space: nowrap;
 }
 
-/* Search in hero bar */
 .hero-search {
   pointer-events: auto;
   position: relative;
@@ -305,7 +289,6 @@ select {
   color: var(--muted);
 }
 
-/* Neighborhood snapshot overlay — bottom left */
 .map-info-overlay {
   position: absolute;
   bottom: 36px;
@@ -322,7 +305,6 @@ select {
   display: block;
 }
 
-/* Legend overlay — bottom right */
 .map-legend-overlay {
   position: absolute;
   bottom: 60px;
@@ -332,7 +314,6 @@ select {
   padding: 13px 16px;
 }
 
-/* Zoom controls — sit above the legend */
 .leaflet-bottom.leaflet-right {
   bottom: 235px;
   right: 20px;
@@ -484,7 +465,6 @@ select {
   font-size: 0.88rem;
 }
 
-/* ── City average card ── */
 .city-stats-card {
   padding: 14px 16px;
 }
@@ -561,7 +541,6 @@ select {
   color: var(--muted);
 }
 
-/* ── Change profile button ── */
 .change-profile-btn {
   margin-top: 14px;
   width: 100%;
@@ -579,36 +558,6 @@ select {
 .change-profile-btn:hover {
   background: rgba(86, 204, 242, 0.16);
   border-color: rgba(86, 204, 242, 0.5);
-}
-
-/* ── Search ── */
-.search-card {
-  padding: 10px 12px;
-}
-
-.search-wrap {
-  position: relative;
-}
-
-.search-input {
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(7, 16, 31, 0.85);
-  color: var(--text);
-  font-size: 0.9rem;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.search-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(86, 204, 242, 0.15);
-}
-
-.search-input::placeholder {
-  color: var(--muted);
 }
 
 .search-results {
@@ -644,7 +593,6 @@ select {
   color: var(--accent);
 }
 
-/* ── Borough filter ── */
 .borough-filter {
   display: flex;
   gap: 5px;
@@ -672,7 +620,6 @@ select {
   color: var(--accent);
 }
 
-/* ── Stepped legend ── */
 .legend-steps {
   display: flex;
   flex-direction: column;
@@ -699,7 +646,6 @@ select {
   color: var(--muted);
 }
 
-/* ── Top 5 list ── */
 .top5-header {
   font-size: 0.78rem;
   text-transform: uppercase;
@@ -759,7 +705,6 @@ select {
   font-weight: 700;
 }
 
-/* ── Hover tooltip ── */
 .map-tooltip {
   position: fixed;
   z-index: 9000;
@@ -784,7 +729,6 @@ select {
   margin-bottom: 2px;
 }
 
-/* ── Select optgroup ── */
 optgroup {
   color: var(--muted);
   font-size: 0.85rem;
